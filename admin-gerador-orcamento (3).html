@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VVI Admin — Gerador de Formulário</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0A0B0F;
+    color: #E2E8F0;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar ── */
+  .layout { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 220px;
+    background: #111318;
+    border-right: 1px solid #1E2028;
+    padding: 28px 20px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 600;
+    color: #00D4AA;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .sidebar-sub {
+    font-size: 11px;
+    color: #4A5568;
+    margin-bottom: 28px;
+    font-weight: 300;
+  }
+
+  .nav-item {
+    padding: 9px 12px;
+    border-radius: 8px;
+    color: #718096;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nav-item:hover { background: #1A1D24; color: #CBD5E0; }
+  .nav-item.ativo { background: rgba(0,212,170,.1); color: #00D4AA; }
+
+  /* ── Main ── */
+  .main {
+    flex: 1;
+    padding: 36px 40px;
+    max-width: 860px;
+  }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: #F7FAFC;
+    margin-bottom: 4px;
+  }
+  .page-sub {
+    font-size: 13px;
+    color: #4A5568;
+    margin-bottom: 32px;
+    font-weight: 300;
+  }
+
+  /* ── Seção ── */
+  .secao {
+    display: none;
+  }
+  .secao.ativa { display: block; }
+
+  .secao-titulo {
+    font-size: 11px;
+    font-weight: 600;
+    color: #4A5568;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #1E2028;
+  }
+
+  /* ── Grupos de campos ── */
+  .grupo { margin-bottom: 28px; }
+
+  .linha { display: grid; gap: 16px; margin-bottom: 16px; }
+  .linha.col2 { grid-template-columns: 1fr 1fr; }
+  .linha.col3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  .campo label {
+    display: block;
+    font-size: 12px;
+    color: #718096;
+    margin-bottom: 6px;
+    font-weight: 500;
+    letter-spacing: .3px;
+  }
+  .campo input, .campo textarea, .campo select {
+    width: 100%;
+    background: #111318;
+    border: 1px solid #1E2028;
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: #E2E8F0;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .campo input:focus, .campo textarea:focus, .campo select:focus {
+    border-color: #00D4AA;
+  }
+  .campo textarea { resize: none; }
+
+  .cor-wrap { display: flex; gap: 8px; align-items: center; }
+  .cor-wrap input[type=color] {
+    width: 38px;
+    height: 38px;
+    padding: 3px;
+    cursor: pointer;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .cor-wrap input[type=text] { flex: 1; }
+
+  /* ── Lista de itens ── */
+  .item-lista { display: flex; flex-direction: column; gap: 10px; }
+
+  .item-row {
+    display: grid;
+    gap: 10px;
+    align-items: center;
+    background: #111318;
+    border: 1px solid #1E2028;
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .item-row.produto-row { grid-template-columns: 40px 1fr 1fr 1fr 32px; }
+  .item-row.tamanho-row { grid-template-columns: 1fr 1fr 1fr 90px 32px; }
+  .item-row.ocasiao-row { grid-template-columns: 40px 1fr 32px; }
+
+  .item-row input {
+    background: #0A0B0F;
+    border: 1px solid #1A1D24;
+    border-radius: 6px;
+    padding: 7px 10px;
+    color: #E2E8F0;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    outline: none;
+    width: 100%;
+    transition: border-color .2s;
+  }
+  .item-row input:focus { border-color: #00D4AA; }
+
+  .item-label {
+    font-size: 10px;
+    color: #4A5568;
+    text-align: center;
+    margin-top: 4px;
+    letter-spacing: .3px;
+  }
+
+  .btn-remover {
+    background: rgba(239,68,68,.1);
+    border: 1px solid rgba(239,68,68,.2);
+    color: #FC8181;
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .2s;
+    flex-shrink: 0;
+  }
+  .btn-remover:hover { background: rgba(239,68,68,.2); }
+
+  .btn-adicionar {
+    background: none;
+    border: 1px dashed #2D3748;
+    border-radius: 8px;
+    color: #4A5568;
+    padding: 10px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    width: 100%;
+    transition: border-color .2s, color .2s;
+    margin-top: 8px;
+  }
+  .btn-adicionar:hover { border-color: #00D4AA; color: #00D4AA; }
+
+  /* ── Ações finais ── */
+  .acoes {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .btn-gerar {
+    background: #00D4AA;
+    color: #0A0B0F;
+    border: none;
+    border-radius: 10px;
+    padding: 13px 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .2s, transform .15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-gerar:hover { opacity: .9; transform: translateY(-1px); }
+
+  .btn-preview {
+    background: rgba(0,212,170,.1);
+    color: #00D4AA;
+    border: 1px solid rgba(0,212,170,.3);
+    border-radius: 10px;
+    padding: 13px 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-preview:hover { background: rgba(0,212,170,.15); }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #00D4AA;
+    color: #0A0B0F;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0,212,170,.3);
+    transform: translateY(80px);
+    opacity: 0;
+    transition: transform .3s, opacity .3s;
+    z-index: 999;
+  }
+  .toast.visivel { transform: translateY(0); opacity: 1; }
+
+  /* ── Badge de seção ── */
+  .badge {
+    display: inline-block;
+    background: rgba(0,212,170,.1);
+    color: #00D4AA;
+    border: 1px solid rgba(0,212,170,.2);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">VVI Admin</div>
+    <div class="sidebar-sub">Gerador de formulário</div>
+
+    <div class="nav-item ativo" onclick="irPara('marca', this)">🏷️ Marca</div>
+    <div class="nav-item" onclick="irPara('cores', this)">🎨 Cores</div>
+    <div class="nav-item" onclick="irPara('produtos', this)">📦 Produtos</div>
+    <div class="nav-item" onclick="irPara('tamanhos', this)">📏 Tamanhos</div>
+    <div class="nav-item" onclick="irPara('ocasioes', this)">🎁 Ocasiões</div>
+    <div class="nav-item" onclick="irPara('textos', this)">✏️ Textos</div>
+    <div class="nav-item" onclick="irPara('gerar', this)" style="margin-top:16px; border-top: 1px solid #1E2028; padding-top: 16px;">⬇️ Gerar HTML</div>
+  </nav>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="page-title">Novo Cliente</div>
+    <div class="page-sub">Preencha as informações abaixo e gere o HTML pronto para deploy.</div>
+
+    <!-- ── MARCA ── -->
+    <section class="secao ativa" id="secao-marca">
+      <div class="secao-titulo">Informações da marca</div>
+      <div class="grupo">
+        <div class="linha col2">
+          <div class="campo">
+            <label>Nome da marca *</label>
+            <input type="text" id="nomeMarca" placeholder="Ex: Essenza">
+          </div>
+          <div class="campo">
+            <label>Tagline</label>
+            <input type="text" id="tagline" placeholder="Ex: Velas Aromáticas Artesanais">
+          </div>
+        </div>
+        <div class="linha col2">
+          <div class="campo">
+            <label>WhatsApp (só números, com DDI e DDD) *</label>
+            <input type="text" id="whatsapp" placeholder="5511999999999">
+          </div>
+          <div class="campo">
+            <label>Logo (emoji ou URL de imagem)</label>
+            <input type="text" id="logo" placeholder="🕯️">
+          </div>
+        </div>
+        <div class="campo">
+          <label>Mensagem de introdução no WhatsApp</label>
+          <input type="text" id="msgIntro" placeholder="Olá! Gostaria de fazer um pedido:">
+        </div>
+      </div>
+    </section>
+
+    <!-- ── CORES ── -->
+    <section class="secao" id="secao-cores">
+      <div class="secao-titulo">Paleta de cores</div>
+      <div class="grupo">
+        <div class="linha col2">
+          <div class="campo">
+            <label>Fundo geral</label>
+            <div class="cor-wrap">
+              <input type="color" id="cor-bg" value="#F5F0EB" oninput="syncCor(this,'txt-bg')">
+              <input type="text" id="txt-bg" value="#F5F0EB" oninput="syncTxt(this,'cor-bg')">
+            </div>
+          </div>
+          <div class="campo">
+            <label>Fundo dos cards</label>
+            <div class="cor-wrap">
+              <input type="color" id="cor-card" value="#FEFCF8" oninput="syncCor(this,'txt-card')">
+              <input type="text" id="txt-card" value="#FEFCF8" oninput="syncTxt(this,'txt-card')">
+            </div>
+          </div>
+        </div>
+        <div class="linha col2">
+          <div class="campo">
+            <label>Cor de destaque (accent)</label>
+            <div class="cor-wrap">
+              <input type="color" id="cor-accent" value="#C9A96E" oninput="syncCor(this,'txt-accent')">
+              <input type="text" id="txt-accent" value="#C9A96E" oninput="syncTxt(this,'cor-accent')">
+            </div>
+          </div>
+          <div class="campo">
+            <label>Texto principal</label>
+            <div class="cor-wrap">
+              <input type="color" id="cor-texto" value="#2C2416" oninput="syncCor(this,'txt-texto')">
+              <input type="text" id="txt-texto" value="#2C2416" oninput="syncTxt(this,'cor-texto')">
+            </div>
+          </div>
+        </div>
+        <div class="linha col2">
+          <div class="campo">
+            <label>Texto secundário</label>
+            <div class="cor-wrap">
+              <input type="color" id="cor-subtexto" value="#7A6A52" oninput="syncCor(this,'txt-subtexto')">
+              <input type="text" id="txt-subtexto" value="#7A6A52" oninput="syncTxt(this,'cor-subtexto')">
+            </div>
+          </div>
+          <div class="campo">
+            <label>Bordas</label>
+            <div class="cor-wrap">
+              <input type="color" id="cor-borda" value="#E8DFD0" oninput="syncCor(this,'txt-borda')">
+              <input type="text" id="txt-borda" value="#E8DFD0" oninput="syncTxt(this,'cor-borda')">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PRODUTOS ── -->
+    <section class="secao" id="secao-produtos">
+      <div class="secao-titulo">Produtos <span class="badge" id="badge-produtos">0</span></div>
+      <div class="item-lista" id="lista-produtos"></div>
+      <button class="btn-adicionar" onclick="addProduto()">+ Adicionar produto</button>
+    </section>
+
+    <!-- ── TAMANHOS ── -->
+    <section class="secao" id="secao-tamanhos">
+      <div class="secao-titulo">Tamanhos / Variações <span class="badge" id="badge-tamanhos">0</span></div>
+      <div class="item-lista" id="lista-tamanhos"></div>
+      <button class="btn-adicionar" onclick="addTamanho()">+ Adicionar tamanho</button>
+    </section>
+
+    <!-- ── OCASIÕES ── -->
+    <section class="secao" id="secao-ocasioes">
+      <div class="secao-titulo">Ocasiões <span class="badge" id="badge-ocasioes">0</span></div>
+      <div class="item-lista" id="lista-ocasioes"></div>
+      <button class="btn-adicionar" onclick="addOcasiao()">+ Adicionar ocasião</button>
+    </section>
+
+    <!-- ── TEXTOS ── -->
+    <section class="secao" id="secao-textos">
+      <div class="secao-titulo">Textos da interface</div>
+      <div class="grupo">
+        <div class="linha col2">
+          <div class="campo"><label>Título passo 1 (produto)</label><input type="text" id="txt-tituloPasso1" placeholder="Qual fragrância você prefere?"></div>
+          <div class="campo"><label>Título passo 2 (tamanho)</label><input type="text" id="txt-tituloPasso2" placeholder="Qual tamanho deseja?"></div>
+        </div>
+        <div class="linha col2">
+          <div class="campo"><label>Título passo 3 (ocasião)</label><input type="text" id="txt-tituloPasso3" placeholder="Qual a ocasião?"></div>
+          <div class="campo"><label>Título passo 4 (contato)</label><input type="text" id="txt-tituloPasso4" placeholder="Seus dados para contato"></div>
+        </div>
+        <div class="linha col3">
+          <div class="campo"><label>Label nome</label><input type="text" id="txt-labelNome" placeholder="Seu nome"></div>
+          <div class="campo"><label>Label telefone</label><input type="text" id="txt-labelTel" placeholder="WhatsApp (opcional)"></div>
+          <div class="campo"><label>Label observações</label><input type="text" id="txt-labelObs" placeholder="Observações (opcional)"></div>
+        </div>
+        <div class="linha col2">
+          <div class="campo"><label>Botão finalizar</label><input type="text" id="txt-btnFinalizar" placeholder="Enviar pedido via WhatsApp"></div>
+          <div class="campo"><label>Rodapé</label><input type="text" id="txt-rodape" placeholder="Powered by VVI Soluções"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── GERAR ── -->
+    <section class="secao" id="secao-gerar">
+      <div class="secao-titulo">Gerar HTML do cliente</div>
+      <p style="color:#4A5568; font-size:13px; margin-bottom:24px; line-height:1.7;">
+        Confira todas as seções antes de gerar. O arquivo gerado é o <code style="background:#111318;padding:2px 6px;border-radius:4px;color:#00D4AA">index.html</code>
+        pronto para fazer upload no repositório GitHub Pages do cliente.
+      </p>
+      <div class="acoes">
+        <button class="btn-preview" onclick="preview()">👁 Preview</button>
+        <button class="btn-gerar" onclick="gerarEBaixar()">⬇ Gerar e baixar HTML</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Navegação ─────────────────────────────────────────────
+function irPara(id, el) {
+  document.querySelectorAll('.secao').forEach(s => s.classList.remove('ativa'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('ativo'));
+  document.getElementById('secao-' + id).classList.add('ativa');
+  el.classList.add('ativo');
+}
+
+// ── Sincroniza color picker ────────────────────────────────
+function syncCor(picker, txtId) {
+  document.getElementById(txtId).value = picker.value;
+}
+function syncTxt(txt, pickerOrTxtId) {
+  const el = document.getElementById(pickerOrTxtId);
+  if (el && /^#[0-9A-Fa-f]{6}$/.test(txt.value)) el.value = txt.value;
+}
+
+// ── Produtos ──────────────────────────────────────────────
+const defProdutos = [
+  { icon: '💜', nome: 'Lavanda', desc: 'Relaxante e suave', id: 'lavanda' },
+  { icon: '🤍', nome: 'Baunilha', desc: 'Aconchegante e doce', id: 'baunilha' },
+  { icon: '💚', nome: 'Eucalipto', desc: 'Refrescante e puro', id: 'eucalipto' },
+];
+
+function addProduto(d = {}) {
+  const lista = document.getElementById('lista-produtos');
+  const i = lista.children.length;
+  const row = document.createElement('div');
+  row.className = 'item-row produto-row';
+  row.innerHTML = `
+    <div><input type="text" placeholder="🕯️" value="${d.icon||''}" title="Emoji/ícone">
+      <div class="item-label">Ícone</div></div>
+    <div><input type="text" placeholder="Nome" value="${d.nome||''}">
+      <div class="item-label">Nome</div></div>
+    <div><input type="text" placeholder="Descrição" value="${d.desc||''}">
+      <div class="item-label">Descrição</div></div>
+    <div><input type="text" placeholder="id-unico" value="${d.id||'produto'+i}">
+      <div class="item-label">ID (sem espaços)</div></div>
+    <button class="btn-remover" onclick="this.parentElement.remove(); atualizarBadge('produtos')">×</button>`;
+  lista.appendChild(row);
+  atualizarBadge('produtos');
+}
+
+// ── Tamanhos ──────────────────────────────────────────────
+const defTamanhos = [
+  { nome: 'Mini', dimensao: '5 cm', peso: '50g', preco: '29.90', id: 'mini' },
+  { nome: 'Média', dimensao: '10 cm', peso: '150g', preco: '59.90', id: 'media' },
+  { nome: 'Grande', dimensao: '15 cm', peso: '300g', preco: '89.90', id: 'grande' },
+];
+
+function addTamanho(d = {}) {
+  const lista = document.getElementById('lista-tamanhos');
+  const i = lista.children.length;
+  const row = document.createElement('div');
+  row.className = 'item-row tamanho-row';
+  row.innerHTML = `
+    <div><input type="text" placeholder="Mini" value="${d.nome||''}">
+      <div class="item-label">Nome</div></div>
+    <div><input type="text" placeholder="5 cm" value="${d.dimensao||''}">
+      <div class="item-label">Dimensão</div></div>
+    <div><input type="text" placeholder="50g" value="${d.peso||''}">
+      <div class="item-label">Peso/medida</div></div>
+    <div><input type="number" step="0.01" placeholder="29.90" value="${d.preco||''}">
+      <div class="item-label">Preço (R$)</div></div>
+    <button class="btn-remover" onclick="this.parentElement.remove(); atualizarBadge('tamanhos')">×</button>`;
+  lista.appendChild(row);
+  atualizarBadge('tamanhos');
+}
+
+// ── Ocasiões ──────────────────────────────────────────────
+const defOcasioes = [
+  { icon: '🎁', nome: 'Presente', id: 'presente' },
+  { icon: '🏠', nome: 'Decoração', id: 'decoracao' },
+  { icon: '🛁', nome: 'Relaxamento', id: 'relaxamento' },
+];
+
+function addOcasiao(d = {}) {
+  const lista = document.getElementById('lista-ocasioes');
+  const i = lista.children.length;
+  const row = document.createElement('div');
+  row.className = 'item-row ocasiao-row';
+  row.innerHTML = `
+    <div><input type="text" placeholder="🎁" value="${d.icon||''}">
+      <div class="item-label">Ícone</div></div>
+    <div><input type="text" placeholder="Presente" value="${d.nome||''}">
+      <div class="item-label">Nome</div></div>
+    <button class="btn-remover" onclick="this.parentElement.remove(); atualizarBadge('ocasioes')">×</button>`;
+  lista.appendChild(row);
+  atualizarBadge('ocasioes');
+}
+
+function atualizarBadge(tipo) {
+  const lista = document.getElementById('lista-' + tipo);
+  document.getElementById('badge-' + tipo).textContent = lista.children.length;
+}
+
+// ── Preenche defaults ──────────────────────────────────────
+(function init() {
+  document.getElementById('nomeMarca').value    = 'Essenza';
+  document.getElementById('tagline').value      = 'Velas Aromáticas Artesanais';
+  document.getElementById('whatsapp').value     = '5511999999999';
+  document.getElementById('logo').value         = '🕯️';
+  document.getElementById('msgIntro').value     = 'Olá! Gostaria de fazer um pedido:';
+  document.getElementById('txt-tituloPasso1').value = 'Qual fragrância você prefere?';
+  document.getElementById('txt-tituloPasso2').value = 'Qual tamanho deseja?';
+  document.getElementById('txt-tituloPasso3').value = 'Qual a ocasião?';
+  document.getElementById('txt-tituloPasso4').value = 'Seus dados para contato';
+  document.getElementById('txt-labelNome').value    = 'Seu nome';
+  document.getElementById('txt-labelTel').value     = 'WhatsApp (opcional)';
+  document.getElementById('txt-labelObs').value     = 'Observações (opcional)';
+  document.getElementById('txt-btnFinalizar').value = 'Enviar pedido via WhatsApp';
+  document.getElementById('txt-rodape').value       = 'Powered by VVI Soluções';
+  defProdutos.forEach(addProduto);
+  defTamanhos.forEach(addTamanho);
+  defOcasioes.forEach(addOcasiao);
+})();
+
+// ── Lê o config do formulário ─────────────────────────────
+function lerConfig() {
+  const produtos = [];
+  document.querySelectorAll('#lista-produtos .item-row').forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    produtos.push({ icon: inputs[0].value, nome: inputs[1].value, desc: inputs[2].value, id: inputs[3].value });
+  });
+  const tamanhos = [];
+  document.querySelectorAll('#lista-tamanhos .item-row').forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    tamanhos.push({ nome: inputs[0].value, dimensao: inputs[1].value, peso: inputs[2].value, preco: parseFloat(inputs[3].value)||0, id: inputs[0].value.toLowerCase().replace(/\s/g,'_') });
+  });
+  const ocasioes = [];
+  document.querySelectorAll('#lista-ocasioes .item-row').forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    ocasioes.push({ icon: inputs[0].value, nome: inputs[1].value, id: inputs[1].value.toLowerCase().replace(/\s/g,'_') });
+  });
+
+  return {
+    nomeMarca:  document.getElementById('nomeMarca').value || 'Marca',
+    tagline:    document.getElementById('tagline').value,
+    whatsapp:   document.getElementById('whatsapp').value.replace(/\D/g,''),
+    logo:       document.getElementById('logo').value || '🛍️',
+    msgIntro:   document.getElementById('msgIntro').value,
+    cores: {
+      bg:       document.getElementById('txt-bg').value,
+      card:     document.getElementById('txt-card').value,
+      accent:   document.getElementById('txt-accent').value,
+      texto:    document.getElementById('txt-texto').value,
+      subtexto: document.getElementById('txt-subtexto').value,
+      borda:    document.getElementById('txt-borda').value,
+    },
+    passos: [
+      { id: 'produto', label: 'Produto', icon: '✦' },
+      { id: 'tamanho', label: 'Tamanho', icon: '✦' },
+      { id: 'ocasiao', label: 'Ocasião', icon: '✦' },
+      { id: 'contato', label: 'Contato', icon: '✦' },
+    ],
+    produtos,
+    tamanhos,
+    ocasioes,
+    textos: {
+      tituloPasso1: document.getElementById('txt-tituloPasso1').value,
+      tituloPasso2: document.getElementById('txt-tituloPasso2').value,
+      tituloPasso3: document.getElementById('txt-tituloPasso3').value,
+      tituloPasso4: document.getElementById('txt-tituloPasso4').value,
+      labelNome:    document.getElementById('txt-labelNome').value,
+      labelTel:     document.getElementById('txt-labelTel').value,
+      labelObs:     document.getElementById('txt-labelObs').value,
+      btnFinalizar: document.getElementById('txt-btnFinalizar').value,
+      rodape:       document.getElementById('txt-rodape').value,
+    },
+  };
+}
+
+// ── Gera o HTML final ─────────────────────────────────────
+function gerarHTML(cfg) {
+  const parts = [];
+  parts.push('<!DOCTYPE html>');
+  parts.push('<html lang="pt-BR">');
+  parts.push('<head>');
+  parts.push('<meta charset="UTF-8">');
+  parts.push('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
+  parts.push('<title>' + cfg.nomeMarca + ' — Pedido</title>');
+  parts.push('<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">');
+  parts.push('<' + 'script>');
+  parts.push('const CONFIG = ' + JSON.stringify(cfg, null, 2) + ';');
+  parts.push('</' + 'script>');
+  parts.push('<style>');
+  parts.push(`:root{--bg:${cfg.cores.bg};--card:${cfg.cores.card};--accent:${cfg.cores.accent};--texto:${cfg.cores.texto};--subtexto:${cfg.cores.subtexto};--borda:${cfg.cores.borda};}*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--texto);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px 48px;}.header{text-align:center;margin-bottom:32px;animation:fadeUp .5s ease both;}.logo{font-size:48px;display:block;margin-bottom:8px;}.header h1{font-family:'Playfair Display',serif;font-size:clamp(22px,5vw,30px);font-weight:600;color:var(--texto);letter-spacing:-.3px;}.header p{font-size:14px;color:var(--subtexto);margin-top:4px;font-weight:300;letter-spacing:.3px;}.progress-wrap{display:flex;justify-content:center;gap:8px;margin-bottom:28px;animation:fadeUp .5s .1s ease both;}.progress-dot{width:8px;height:8px;border-radius:50%;background:var(--borda);transition:background .3s,transform .3s;}.progress-dot.ativo{background:var(--accent);transform:scale(1.3);}.progress-dot.feito{background:var(--accent);opacity:.45;}.card{background:var(--card);border:1px solid var(--borda);border-radius:18px;padding:28px 24px;width:100%;max-width:480px;box-shadow:0 4px 24px rgba(44,36,22,.06);animation:fadeUp .4s .15s ease both;}.card h2{font-family:'Playfair Display',serif;font-size:18px;font-weight:600;margin-bottom:20px;color:var(--texto);}.opcoes{display:grid;gap:10px;}.opcoes.grid2{grid-template-columns:1fr 1fr;}.opcao{border:1.5px solid var(--borda);border-radius:12px;padding:14px 16px;cursor:pointer;transition:border-color .2s,background .2s,transform .15s;display:flex;align-items:center;gap:12px;background:transparent;text-align:left;}.opcao:hover{border-color:var(--accent);background:rgba(0,0,0,.03);}.opcao.selecionado{border-color:var(--accent);background:rgba(0,0,0,.05);transform:scale(1.01);}.opcao-icon{font-size:22px;flex-shrink:0;}.opcao-info{flex:1;}.opcao-nome{font-size:14px;font-weight:500;color:var(--texto);}.opcao-desc{font-size:12px;color:var(--subtexto);margin-top:2px;font-weight:300;}.tamanhos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}.tamanho-card{border:1.5px solid var(--borda);border-radius:12px;padding:16px 10px;cursor:pointer;transition:border-color .2s,background .2s,transform .15s;text-align:center;background:transparent;}.tamanho-card:hover{border-color:var(--accent);}.tamanho-card.selecionado{border-color:var(--accent);transform:scale(1.02);}.tamanho-visual{display:flex;align-items:flex-end;justify-content:center;height:44px;margin-bottom:8px;}.tamanho-vela{background:linear-gradient(to bottom,var(--accent),#a07840);border-radius:3px 3px 2px 2px;width:18px;opacity:.85;}.tamanho-nome{font-size:13px;font-weight:500;color:var(--texto);}.tamanho-dim{font-size:11px;color:var(--subtexto);margin-top:2px;font-weight:300;}.tamanho-preco{font-size:13px;font-weight:500;color:var(--accent);margin-top:6px;}.campo{margin-bottom:16px;}.campo label{display:block;font-size:13px;color:var(--subtexto);margin-bottom:6px;font-weight:400;}.campo input,.campo textarea{width:100%;border:1.5px solid var(--borda);border-radius:10px;padding:12px 14px;font-family:'DM Sans',sans-serif;font-size:14px;background:var(--bg);color:var(--texto);transition:border-color .2s;outline:none;resize:none;}.campo input:focus,.campo textarea:focus{border-color:var(--accent);}.resumo{background:rgba(0,0,0,.04);border:1px solid var(--borda);border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:var(--subtexto);line-height:1.7;}.resumo strong{color:var(--texto);font-weight:500;}.btn-primario{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:15px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:opacity .2s,transform .15s;text-decoration:none;}.btn-primario:hover{opacity:.9;transform:translateY(-1px);}.btn-voltar{background:none;border:none;color:var(--subtexto);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;padding:10px 0 0;display:block;margin:0 auto;text-align:center;transition:color .2s;}.btn-voltar:hover{color:var(--texto);}.rodape{margin-top:28px;font-size:11px;color:var(--subtexto);opacity:.6;text-align:center;letter-spacing:.3px;}@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}.passo{animation:fadeUp .35s ease both;}`);
+  parts.push('</style>');
+  parts.push('</head><body>');
+  parts.push('<div class="header"><span class="logo" id="logo"></span><h1 id="nome-marca"></h1><p id="tagline"></p></div>');
+  parts.push('<div class="progress-wrap" id="progress"></div>');
+  parts.push('<div class="card" id="card-conteudo"></div>');
+  parts.push('<div class="rodape" id="rodape"></div>');
+  parts.push('<' + 'script>');
+  parts.push(`
+(function(){const r=document.documentElement.style;const c=CONFIG.cores;r.setProperty('--bg',c.bg);r.setProperty('--card',c.card);r.setProperty('--accent',c.accent);r.setProperty('--texto',c.texto);r.setProperty('--subtexto',c.subtexto);r.setProperty('--borda',c.borda);})();
+document.getElementById('logo').textContent=CONFIG.logo;
+document.getElementById('nome-marca').textContent=CONFIG.nomeMarca;
+document.getElementById('tagline').textContent=CONFIG.tagline;
+document.getElementById('rodape').textContent=CONFIG.textos.rodape;
+const estado={passo:0,produto:null,tamanho:null,ocasiao:null};
+function renderProgress(){const w=document.getElementById('progress');w.innerHTML='';CONFIG.passos.forEach((_,i)=>{const d=document.createElement('div');d.className='progress-dot'+(i===estado.passo?' ativo':i<estado.passo?' feito':'');w.appendChild(d);});}
+function renderPasso(){renderProgress();const c=document.getElementById('card-conteudo');c.innerHTML='';const div=document.createElement('div');div.className='passo';if(estado.passo===0)renderProdutos(div);else if(estado.passo===1)renderTamanhos(div);else if(estado.passo===2)renderOcasioes(div);else renderContato(div);c.appendChild(div);}
+function renderProdutos(div){div.innerHTML='<h2>'+CONFIG.textos.tituloPasso1+'</h2>';const g=document.createElement('div');g.className='opcoes grid2';CONFIG.produtos.forEach(p=>{const el=document.createElement('div');el.className='opcao'+(estado.produto===p.id?' selecionado':'');el.innerHTML='<span class="opcao-icon">'+p.icon+'</span><div class="opcao-info"><div class="opcao-nome">'+p.nome+'</div><div class="opcao-desc">'+p.desc+'</div></div>';el.onclick=()=>{estado.produto=p.id;estado.passo=1;renderPasso();};g.appendChild(el);});div.appendChild(g);}
+function renderTamanhos(div){div.innerHTML='<h2>'+CONFIG.textos.tituloPasso2+'</h2>';const g=document.createElement('div');g.className='tamanhos-grid';const alts=[22,34,44];CONFIG.tamanhos.forEach((t,i)=>{const el=document.createElement('div');el.className='tamanho-card'+(estado.tamanho===t.id?' selecionado':'');const h=alts[i]||32;el.innerHTML='<div class="tamanho-visual"><div class="tamanho-vela" style="height:'+h+'px"></div></div><div class="tamanho-nome">'+t.nome+'</div><div class="tamanho-dim">'+t.dimensao+' · '+t.peso+'</div><div class="tamanho-preco">R$ '+parseFloat(t.preco).toFixed(2).replace('.',',')+'</div>';el.onclick=()=>{estado.tamanho=t.id;estado.passo=2;renderPasso();};g.appendChild(el);});div.appendChild(g);div.appendChild(btnVoltar());}
+function renderOcasioes(div){div.innerHTML='<h2>'+CONFIG.textos.tituloPasso3+'</h2>';const g=document.createElement('div');g.className='opcoes';CONFIG.ocasioes.forEach(o=>{const el=document.createElement('div');el.className='opcao'+(estado.ocasiao===o.id?' selecionado':'');el.innerHTML='<span class="opcao-icon">'+o.icon+'</span><div class="opcao-info"><div class="opcao-nome">'+o.nome+'</div></div>';el.onclick=()=>{estado.ocasiao=o.id;estado.passo=3;renderPasso();};g.appendChild(el);});div.appendChild(g);div.appendChild(btnVoltar());}
+function renderContato(div){const prod=CONFIG.produtos.find(p=>p.id===estado.produto);const tam=CONFIG.tamanhos.find(t=>t.id===estado.tamanho);const ocas=CONFIG.ocasioes.find(o=>o.id===estado.ocasiao);div.innerHTML='<h2>'+CONFIG.textos.tituloPasso4+'</h2><div class="resumo"><strong>Resumo do pedido</strong><br>Produto: '+(prod?prod.nome:'-')+'<br>Tamanho: '+(tam?tam.nome:'-')+' ('+(tam?tam.dimensao:'-')+')<br>Ocasião: '+(ocas?ocas.nome:'-')+'<br>Valor: R$ '+(tam?parseFloat(tam.preco).toFixed(2).replace('.',','):'-')+'</div><div class="campo"><label>'+CONFIG.textos.labelNome+' *</label><input type="text" id="inp-nome" placeholder="Seu nome completo"></div><div class="campo"><label>'+CONFIG.textos.labelTel+'</label><input type="tel" id="inp-tel" placeholder="(11) 9 0000-0000"></div><div class="campo"><label>'+CONFIG.textos.labelObs+'</label><textarea id="inp-obs" rows="3" placeholder="Embalagem para presente, data de entrega..."></textarea></div>';const btn=document.createElement('a');btn.className='btn-primario';btn.innerHTML=CONFIG.textos.btnFinalizar;btn.onclick=(e)=>{e.preventDefault();const nome=document.getElementById('inp-nome').value.trim();if(!nome){document.getElementById('inp-nome').style.borderColor=CONFIG.cores.accent;return;}const tel=document.getElementById('inp-tel').value.trim();const obs=document.getElementById('inp-obs').value.trim();let msg=CONFIG.msgIntro+'\\n\\n';msg+='👤 Nome: '+nome+'\\n';msg+='📦 Produto: '+(prod?prod.nome:'-')+'\\n';msg+='📏 Tamanho: '+(tam?tam.nome:'-')+' ('+(tam?tam.dimensao:'-')+')\\n';msg+='🎁 Ocasião: '+(ocas?ocas.nome:'-')+'\\n';msg+='💰 Valor: R$ '+(tam?parseFloat(tam.preco).toFixed(2).replace('.',','):'-')+'\\n';if(tel)msg+='📱 Tel: '+tel+'\\n';if(obs)msg+='📝 Obs: '+obs;window.open('https://wa.me/'+CONFIG.whatsapp+'?text='+encodeURIComponent(msg),'_blank');};div.appendChild(btn);div.appendChild(btnVoltar());}
+function btnVoltar(){const b=document.createElement('button');b.className='btn-voltar';b.textContent='← Voltar';b.onclick=()=>{if(estado.passo>0){estado.passo--;renderPasso();}};return b;}
+renderPasso();
+`);
+  parts.push('</' + 'script>');
+  parts.push('</body></html>');
+  return parts.join('\n');
+}
+
+// ── Preview ────────────────────────────────────────────────
+function preview() {
+  const html = gerarHTML(lerConfig());
+  const blob = new Blob([html], { type: 'text/html' });
+  window.open(URL.createObjectURL(blob), '_blank');
+}
+
+// ── Baixar ─────────────────────────────────────────────────
+function gerarEBaixar() {
+  const cfg  = lerConfig();
+  const html = gerarHTML(cfg);
+  const blob = new Blob([html], { type: 'text/html' });
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = 'index.html';
+  a.click();
+  mostrarToast('✓ index.html gerado com sucesso!');
+}
+
+function mostrarToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('visivel');
+  setTimeout(() => t.classList.remove('visivel'), 3000);
+}
+</script>
+</body>
+</html>
